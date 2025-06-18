@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>عملاء توب ماركتينج</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: Arial; background: #f9f9f9; padding: 20px; direction: rtl; }
+    h1 { color: #4CAF50; }
+    input, button { padding: 10px; margin: 5px; width: 100%; max-width: 250px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    .whatsapp, .delete, .edit { cursor: pointer; padding: 4px 8px; border: none; }
+    .whatsapp { color: green; }
+    .delete { color: red; }
+    .edit { color: orange; }
+    #search { width: 100%; max-width: 300px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>📋 عملاء توب ماركتينج</h1>
+  <input id="name" placeholder="الاسم" />
+  <input id="phone" placeholder="رقم الهاتف" />
+  <input id="task" placeholder="المطلوب" />
+  <button onclick="addClient()">➕ إضافة</button>
+  <input id="search" placeholder="🔍 ابحث بالاسم أو الرقم" oninput="renderClients()" />
+  <p id="count">عدد العملاء: 0</p>
+  <table>
+    <thead>
+      <tr><th>الاسم</th><th>رقم الهاتف</th><th>المطلوب</th><th>واتساب</th><th>تعديل</th><th>حذف</th></tr>
+    </thead>
+    <tbody id="clientList"></tbody>
+  </table>
+
+  <script>
+    let clients = JSON.parse(localStorage.getItem("clients") || "[]");
+    let editIndex = -1;
+
+    function saveClients() {
+      localStorage.setItem("clients", JSON.stringify(clients));
+    }
+
+    function addClient() {
+      const name = document.getElementById("name").value;
+      const phone = document.getElementById("phone").value;
+      const task = document.getElementById("task").value;
+
+      if (name && phone) {
+        if (editIndex >= 0) {
+          clients[editIndex] = { name, phone, task };
+          editIndex = -1;
+        } else {
+          clients.push({ name, phone, task });
+        }
+        saveClients();
+        document.getElementById("name").value = "";
+        document.getElementById("phone").value = "";
+        document.getElementById("task").value = "";
+        renderClients();
+      }
+    }
+
+    function renderClients() {
+      const tbody = document.getElementById("clientList");
+      const keyword = document.getElementById("search").value.toLowerCase();
+      tbody.innerHTML = "";
+      clients.forEach((c, i) => {
+        if (
+          c.name.toLowerCase().includes(keyword) ||
+          c.phone.includes(keyword)
+        ) {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${c.name}</td>
+            <td>${c.phone}</td>
+            <td>${c.task}</td>
+            <td><a class="whatsapp" href="https://wa.me/${c.phone}" target="_blank">📲</a></td>
+            <td><button class="edit" onclick="editClient(${i})">✏️</button></td>
+            <td><button class="delete" onclick="deleteClient(${i})">🗑️</button></td>
+          `;
+          tbody.appendChild(row);
+        }
+      });
+      document.getElementById("count").innerText = "عدد العملاء: " + clients.length;
+    }
+
+    function deleteClient(index) {
+      if (confirm("هل أنت متأكد من حذف العميل؟")) {
+        clients.splice(index, 1);
+        saveClients();
+        renderClients();
+      }
+    }
+
+    function editClient(index) {
+      const c = clients[index];
+      document.getElementById("name").value = c.name;
+      document.getElementById("phone").value = c.phone;
+      document.getElementById("task").value = c.task;
+      editIndex = index;
+    }
+
+    window.onload = renderClients;
+  </script>
+</body>
+</html>
